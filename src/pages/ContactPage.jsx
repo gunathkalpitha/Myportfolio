@@ -26,6 +26,20 @@ function ContactPage() {
                 <p key={item}>{item}</p>
               ))}
             </div>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              {contact.links?.map((link) => (
+                <a
+                  key={link.url}
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="chip text-primary-700 transition hover:bg-primary-50"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
           </article>
 
           <article className="glass-panel p-8">

@@ -13,15 +13,15 @@ function getBotReply(question) {
     return `Core technologies include ${skills.join(', ')}.`
   }
 
-  if (text.includes('publish') || text.includes('blog')) {
-    return `There are ${portfolioData.publications.length} publications available. Visit the Publications page for all topics.`
+  if (text.includes('cert') || text.includes('publish') || text.includes('blog') || text.includes('activity')) {
+    return `There are ${portfolioData.credentials.length} credentials and activities listed. Visit the Certifications page to see all details.`
   }
 
   if (text.includes('contact') || text.includes('email') || text.includes('phone')) {
-    return `You can reach Gunath via ${portfolioData.contact.details.join(' | ')}.`
+    return `You can reach ${portfolioData.fullName} via ${portfolioData.contact.details.join(' | ')}.`
   }
 
-  return 'I can help with projects, skills, publications, and contact details. Try asking one of those.'
+  return 'I can help with projects, skills, certifications, activities, and contact details. Try asking one of those.'
 }
 
 function ChatBotWidget() {
@@ -49,7 +49,7 @@ function ChatBotWidget() {
       {open ? (
         <div className="w-[320px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-glow">
           <div className="flex items-center justify-between bg-gradient-to-r from-sky-100 to-violet-100 px-4 py-3">
-            <p className="font-display text-sm font-bold text-slate-900">Gunath Assistant</p>
+            <p className="font-display text-sm font-bold text-slate-900">Portfolio Assistant</p>
             <button
               type="button"
               onClick={() => setOpen(false)}

@@ -1,156 +1,205 @@
 export const portfolioData = {
-  brand: 'GUNATH',
-  fullName: 'Gunath',
+  brand: 'GUNATH K.',
+  fullName: 'Gunath Kalpitha',
   navItems: [
     { label: 'Home', to: '/' },
-    { label: 'About Me', to: '/about' },
+    { label: 'About', to: '/about' },
     { label: 'Projects', to: '/projects' },
-    { label: 'Publications', to: '/publications' },
-    { label: 'Contact Me', to: '/contact' },
+    { label: 'Certifications', to: '/publications' },
+    { label: 'Contact', to: '/contact' },
   ],
   hero: {
-    badge: 'Software Engineer and Problem Solver',
-    title: 'Colorful software experiences with clean architecture and real-world impact.',
+    badge: 'Computer Engineering Undergraduate | Full-Stack and IoT Developer',
+    title: 'Building practical engineering solutions across mobile, web, and embedded systems.',
     description:
-      'I build modern web platforms, cloud-ready APIs, and automation workflows that help teams ship better products faster.',
-    ctaPrimary: { label: 'Explore Projects', to: '/projects' },
-    ctaSecondary: { label: 'Read Publications', to: '/publications' },
+      'I am a Computer Engineering undergraduate at the University of Ruhuna focused on secure full-stack development, IoT applications, and cloud-integrated products.',
+    ctaPrimary: { label: 'View Projects', to: '/projects' },
+    ctaSecondary: { label: 'View Certifications', to: '/publications' },
+    slides: [
+      {
+        id: 'engineering-workspace',
+        caption: 'Engineering solutions with clean architecture and practical delivery',
+        imageUrl:
+          'https://images.unsplash.com/photo-1518773553398-650c184e0bb3?auto=format&fit=crop&w=2200&q=80',
+      },
+      {
+        id: 'iot-electronics',
+        caption: 'IoT, embedded systems, and real-time data experiences',
+        imageUrl:
+          'https://images.unsplash.com/photo-1581092160607-ee22731e8f4c?auto=format&fit=crop&w=2200&q=80',
+      },
+      {
+        id: 'cloud-app-development',
+        caption: 'Cloud-backed full-stack applications from concept to deployment',
+        imageUrl:
+          'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2200&q=80',
+      },
+    ],
   },
   stats: [
-    { value: '20+', label: 'Production features delivered' },
-    { value: '12', label: 'Projects completed successfully' },
-    { value: '4+', label: 'Domains worked across' },
+    { value: '3.0', label: 'Current GPA' },
+    { value: '3', label: 'Major projects completed' },
+    { value: 'Top 8', label: 'FINC25 finalist team' },
   ],
-  highlightTags: ['React', 'Next.js', 'TypeScript', 'Python', 'Node.js', 'Azure'],
+  highlightTags: ['React', 'Node.js', 'Flutter', 'Supabase', 'IoT', 'Embedded Systems'],
   about: [
-    'I am Gunath, a full-stack software engineer focused on building high-quality products that are simple to use and easy to scale.',
-    'My approach combines practical engineering, thoughtful UI decisions, and strong collaboration so teams can ship features confidently.',
+    'I am a Computer Engineering undergraduate at the Faculty of Engineering, University of Ruhuna, with a multidisciplinary background in embedded systems, IoT, and full-stack development.',
+    'I build secure mobile applications and scalable backend systems using Java, Node.js, React, and Flutter, while applying cloud-native and machine-learning concepts to deliver robust end-to-end products.',
   ],
   skillCategories: [
     {
+      title: 'Programming Languages',
+      items: ['Java', 'JavaScript', 'Python (Basic)', 'C++ (Basic)', 'Dart (Basic)'],
+    },
+    {
       title: 'Frontend Development',
-      items: ['React', 'Next.js', 'Tailwind CSS', 'TypeScript', 'Responsive UI Design'],
+      items: ['React', 'Tailwind CSS', 'HTML', 'CSS', 'Responsive UI Design'],
     },
     {
-      title: 'Backend and APIs',
-      items: ['Node.js', 'Express', 'Python', 'Flask', 'REST API Architecture'],
+      title: 'Backend Development',
+      items: ['Node.js', 'Express.js', 'RESTful APIs', 'Authentication', 'Server Integration'],
     },
     {
-      title: 'Cloud and Data',
-      items: ['Azure', 'Docker', 'MongoDB', 'PostgreSQL', 'CI/CD Automation'],
+      title: 'Databases',
+      items: ['MongoDB', 'MySQL (Basic)', 'PostgreSQL', 'Supabase Storage'],
+    },
+    {
+      title: 'Cloud Technologies',
+      items: ['Firebase', 'Supabase', 'Edge Functions', 'Offline Data Sync'],
+    },
+    {
+      title: 'DevOps and Version Control',
+      items: ['Git', 'GitHub', 'Docker', 'Release Management'],
     },
   ],
   features: [
     {
       id: '01',
-      title: 'Software Development',
+      title: 'Full-Stack Engineering',
       description:
-        'From idea to deployment, I create maintainable applications with clean code and reliable performance.',
+        'Designing and delivering secure, maintainable web and mobile systems with React, Node.js, and modern API architecture.',
       accentClass: 'bg-sky-100 text-sky-700 border-sky-200',
     },
     {
       id: '02',
-      title: 'Software Design and Architecture',
+      title: 'IoT and Embedded Integration',
       description:
-        'I design scalable systems and feature structures that remain robust as teams and requirements grow.',
+        'Developing connected embedded and mobile experiences with reliable device synchronization and practical field-ready workflows.',
       accentClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     },
     {
       id: '03',
-      title: 'Problem Solving and Debugging',
+      title: 'Cloud and Data-Centric Delivery',
       description:
-        'I identify root causes quickly and deliver practical fixes while maintaining product momentum.',
+        'Building cloud-backed products with robust data models, secure auth flows, and real-time or delayed synchronization support.',
       accentClass: 'bg-rose-100 text-rose-700 border-rose-200',
     },
   ],
   projects: [
     {
-      title: 'Urban Flow Smart City Reporter',
-      category: 'Full-Stack Web Development',
+      title: 'Digital Inspection System for NBRO',
+      category: 'Cross-Platform Field Inspection Platform',
       summary:
-        'An intelligent civic reporting platform that routes issues with AI-assisted triage and automated authority workflows.',
-      tags: ['Next.js', 'Node.js', 'MongoDB', 'Tailwind'],
+        'Built a cross-platform digital inspection and pre-crack survey system for infrastructure projects with GPS-tagged records, image capture, offline-first workflows, and web-based administration.',
+      tags: ['Flutter', 'Supabase', 'PostgreSQL', 'Google Maps API', 'Web Dashboard'],
       toneClass: 'from-sky-50 to-cyan-50',
     },
     {
-      title: 'Neura AI Health Prediction',
-      category: 'AI and ML',
+      title: 'Project Sentry (2025)',
+      category: 'IoT Competition Project',
       summary:
-        'A real-time health prediction system using CNN-LSTM models for patient-specific scoring and risk alerts.',
-      tags: ['Python', 'TensorFlow', 'Flask', 'NumPy'],
-      toneClass: 'from-violet-50 to-fuchsia-50',
-    },
-    {
-      title: 'Education Insight Portal',
-      category: 'Web Platform',
-      summary:
-        'A responsive education platform delivering structured content, better discoverability, and strong performance.',
-      tags: ['React', 'Spring Boot', 'PostgreSQL', 'Vite'],
-      toneClass: 'from-amber-50 to-orange-50',
-    },
-    {
-      title: 'Cloud Workflow Automation Hub',
-      category: 'Cloud and Automation',
-      summary:
-        'A workflow orchestration dashboard that automates recurring operations and integrates multiple cloud services.',
-      tags: ['React', 'Azure', 'Node.js', 'Docker'],
+        'Contributed to the design and development of an IoT-based household electrical energy and safety management system selected as a Top 8 finalist in the FINC25 competition organized by the IEEE Student Branch, University of Moratuwa.',
+      tags: ['IoT', 'Embedded Systems', 'Energy Monitoring', 'Team Collaboration'],
       toneClass: 'from-emerald-50 to-teal-50',
     },
-  ],
-  publications: [
     {
-      title: 'Transforming Healthcare IT: Practical AI Insights',
-      category: 'Healthcare IT',
-      date: 'September 18, 2025',
-      readTime: '5 min read',
-      categoryClass: 'bg-rose-100 text-rose-700',
+      title: 'Lustra Smart Watch (2025)',
+      category: 'Embedded and Mobile Ecosystem',
+      summary:
+        'Developed an ESP32-S3 based smart watch and companion mobile app with synchronized device data, personalized tracking, and real-time notifications, integrating LVGL-based embedded interfaces with modern mobile UX.',
+      tags: ['ESP32-S3', 'LVGL', 'Flutter', 'Dart', 'Real-Time Notifications'],
+      toneClass: 'from-amber-50 to-orange-50',
     },
+  ],
+  credentials: [
     {
-      title: 'Cloud Infrastructure Strategies for Product Teams',
-      category: 'Cloud Infrastructure',
-      date: 'October 4, 2025',
-      readTime: '8 min read',
+      title: 'Web Development Certificate',
+      category: 'Certificate',
+      issuer: 'Professional Learning Program',
+      year: 'Completed',
+      note: 'Foundational web development training covering front-end development concepts.',
       categoryClass: 'bg-sky-100 text-sky-700',
     },
     {
-      title: 'Responsible AI in Customer Experience',
-      category: 'Artificial Intelligence',
-      date: 'November 2, 2025',
-      readTime: '7 min read',
+      title: 'Introduction to C#',
+      category: 'Certificate',
+      issuer: 'Professional Learning Program',
+      year: 'Completed',
+      note: 'Covered core C# syntax, object-oriented programming fundamentals, and development basics.',
+      categoryClass: 'bg-emerald-100 text-emerald-700',
+    },
+    {
+      title: 'C# Intermediate',
+      category: 'Certificate',
+      issuer: 'Professional Learning Program',
+      year: 'Completed',
+      note: 'Expanded intermediate programming knowledge in C# for practical application development.',
+      categoryClass: 'bg-amber-100 text-amber-700',
+    },
+    {
+      title: 'Organizing Committee Member - Rextro 2025 Silver Jubilee Exhibition',
+      category: 'Leadership',
+      issuer: 'Faculty of Engineering, University of Ruhuna',
+      year: '2025',
+      note: 'Supported event organization and planning for a large faculty-level exhibition.',
       categoryClass: 'bg-violet-100 text-violet-700',
     },
     {
-      title: 'Developer Security Checklist for Fast Teams',
-      category: 'Cybersecurity',
-      date: 'December 10, 2025',
-      readTime: '6 min read',
-      categoryClass: 'bg-amber-100 text-amber-700',
+      title: 'Member - Gaveshakayo Hiking Club',
+      category: 'Volunteering',
+      issuer: 'University of Ruhuna',
+      year: 'Ongoing',
+      note: 'Participated in faculty-organized hikes showcasing teamwork, planning, and endurance.',
+      categoryClass: 'bg-rose-100 text-rose-700',
     },
   ],
-  testimonials: [
+  achievements: [
     {
-      name: 'Poona Palihakkara',
-      role: 'Software Engineering Student',
-      quote:
-        'Gunath consistently transforms complex technical ideas into reliable, practical software while keeping the team motivated.',
+      title: 'BSc (Hons) in Computer Engineering',
+      meta: 'Faculty of Engineering, University of Ruhuna',
+      detail: 'Current undergraduate with a 3.0 GPA and active engagement in hands-on engineering projects.',
     },
     {
-      name: 'Sasindu Akash',
-      role: 'Medical Faculty Undergraduate',
-      quote:
-        'He brings strong analytical thinking and calm execution. Even challenging tasks become manageable around his process.',
+      title: 'FINC25 Top 8 Finalist',
+      meta: 'IEEE Student Branch, University of Moratuwa',
+      detail: 'Selected among finalist teams for Project Sentry, an IoT-based safety and energy management solution.',
+    },
+    {
+      title: 'Full Lifecycle Product Building',
+      meta: 'Field systems to embedded ecosystems',
+      detail: 'Experienced in taking products from idea to implementation across mobile apps, embedded devices, and cloud-backed dashboards.',
     },
   ],
   contact: {
-    subtitle: 'I am here to help you build and grow with technology.',
+    subtitle: 'Open to internships, collaborations, and software engineering opportunities.',
     details: [
-      'Email: gunathkodi@gmail.com',
-      'Phone: +94 77 300 7426',
-      'Location: Hambantota, Sri Lanka',
+      'Email: bgunathkalpitha18@gmail.com',
+      'Phone: +94 70 355 1607',
+      'LinkedIn: linkedin.com/in/gunath-kalpitha',
+      'GitHub: github.com/gunathkalpitha',
+      'Portfolio: gunath.netlify.app',
+    ],
+    email: 'bgunathkalpitha18@gmail.com',
+    phone: '+94 70 355 1607',
+    location: 'Sri Lanka',
+    links: [
+      { label: 'LinkedIn', url: 'https://www.linkedin.com/in/gunath-kalpitha/' },
+      { label: 'GitHub', url: 'https://github.com/gunathkalpitha' },
+      { label: 'Portfolio', url: 'https://gunath.netlify.app/' },
     ],
   },
   chatbot: {
-    greeting: 'Hi, I am Gunath Bot. Ask me about projects, skills, publications, or contact details.',
-    quickReplies: ['Show projects', 'What skills?', 'How to contact?'],
+    greeting: 'Hi, I am Gunath Assistant. Ask me about projects, skills, certifications, or contact details.',
+    quickReplies: ['Show projects', 'What skills?', 'Show certifications', 'How to contact?'],
   },
 }
