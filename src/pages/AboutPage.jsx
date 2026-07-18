@@ -1,5 +1,4 @@
 import PageHero from '../components/layout/PageHero'
-import SectionHeading from '../components/SectionHeading'
 import { portfolioData } from '../data/portfolioData'
 
 function AboutPage() {
@@ -13,60 +12,79 @@ function AboutPage() {
         description="A closer look at my engineering approach, strengths, and technologies I use to build reliable systems."
       />
 
-      <section className="section-shell py-12 md:py-16">
-        <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-          <article className="soft-card p-8">
-            <SectionHeading
-              kicker="Profile"
-              title="Engineering Mindset"
-              description="I focus on clarity, velocity, and maintainability from day one."
-            />
-            <div className="mt-6 space-y-4 text-slate-600">
-              {about.map((paragraph) => (
-                <p key={paragraph} className="leading-relaxed">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-          </article>
-
-          <article className="soft-card p-8">
-            <SectionHeading
-              kicker="Statistics"
-              title="Quick Highlights"
-              description="A concise snapshot of delivery and domain exposure."
-            />
-            <div className="mt-7 grid gap-4 sm:grid-cols-3">
-              {stats.map((stat) => (
-                <div key={stat.label} className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <p className="text-3xl font-extrabold text-slate-900">{stat.value}</p>
-                  <p className="mt-2 text-sm text-slate-600">{stat.label}</p>
+      {/* Profile + Bio */}
+      <section className="bg-white">
+        <div className="section-shell py-14 md:py-18">
+          <div className="grid gap-10 lg:grid-cols-[auto_1fr] lg:items-start">
+            {/* Profile card */}
+            <div className="flex flex-col items-center rounded-2xl border border-gray-100 bg-gray-50 p-8 lg:w-64 shadow-sm">
+              <div className="relative mb-4">
+                <div className="absolute inset-[-3px] rounded-full bg-gradient-to-br from-blue-400 via-violet-500 to-blue-600" />
+                <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-white">
+                  <img
+                    src="/profile.png"
+                    alt={fullName}
+                    className="w-full h-full object-cover"
+                    style={{ objectPosition: 'center 5%' }}
+                  />
                 </div>
-              ))}
+              </div>
+              <h2 className="font-display text-xl font-bold text-gray-900 text-center">{fullName}</h2>
+              <p className="text-sm text-blue-600 font-semibold text-center mt-1">Computer Engineering</p>
+              <p className="text-xs text-gray-500 text-center mt-1">University of Ruhuna, Sri Lanka</p>
+              <div className="mt-6 w-full space-y-3">
+                {stats.map((item) => (
+                  <div key={item.label} className="rounded-xl bg-white border border-gray-100 p-3 text-center shadow-sm">
+                    <p className="font-display text-2xl font-black text-blue-600">{item.value}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{item.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </article>
+
+            {/* Text content */}
+            <div>
+              <p className="kicker mb-2">Profile</p>
+              <h3 className="font-display text-3xl font-bold text-gray-900 mb-2">Engineering Mindset</h3>
+              <div className="w-10 h-1 bg-green-500 rounded mb-6" />
+              <div className="space-y-4 text-gray-600 leading-relaxed">
+                {about.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="section-shell pb-16 pt-10 md:pb-20 md:pt-12">
-        <SectionHeading
-          kicker="Skills"
-          title="Tools and Technologies"
-          description="Capabilities grouped by the way I ship software products."
-          align="center"
-        />
+      {/* Skills */}
+      <section className="bg-gray-50">
+        <div className="section-shell py-14 md:py-18">
+          <div className="text-center mb-12">
+            <p className="kicker mb-2 justify-center">Skills</p>
+            <h2 className="font-display text-3xl font-bold text-gray-900 md:text-4xl">Tools & Technologies</h2>
+            <p className="mt-3 text-gray-500 max-w-lg mx-auto">Capabilities grouped by the way I ship software products.</p>
+          </div>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {skillCategories.map((category) => (
-            <article key={category.title} className="soft-card p-6">
-              <h3 className="text-sm font-bold uppercase tracking-[0.14em] text-primary-700">{category.title}</h3>
-              <ul className="mt-5 space-y-2 text-sm text-slate-600">
-                {category.items.map((item) => (
-                  <li key={item}>- {item}</li>
-                ))}
-              </ul>
-            </article>
-          ))}
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {skillCategories.map((cat, i) => {
+              const accents = ['bg-blue-500', 'bg-violet-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-cyan-500']
+              return (
+                <article key={cat.title} className="soft-card p-6">
+                  <div className={`w-8 h-1 ${accents[i % accents.length]} rounded mb-4`} />
+                  <h3 className="font-display text-sm font-bold uppercase tracking-widest text-gray-800 mb-4">{cat.title}</h3>
+                  <ul className="space-y-1.5">
+                    {cat.items.map((item) => (
+                      <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              )
+            })}
+          </div>
         </div>
       </section>
     </>

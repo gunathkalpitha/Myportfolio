@@ -1,10 +1,20 @@
 function PageHero({ badge, title, description }) {
   return (
-    <section className="section-shell py-14 md:py-20">
-      <div className="soft-card bg-gradient-to-r from-sky-100/70 via-white to-rose-100/70 p-8 md:p-12">
-        <span className="kicker">{badge}</span>
-        <h1 className="mt-5 font-display text-4xl font-bold leading-tight text-slate-900 md:text-6xl">{title}</h1>
-        <p className="mt-4 max-w-3xl text-base leading-relaxed text-slate-600 md:text-lg">{description}</p>
+    <section
+      className="relative overflow-hidden bg-cover bg-center"
+      style={{
+        backgroundImage: 'url(https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2200&q=80)',
+        minHeight: '340px',
+      }}
+    >
+      <div className="absolute inset-0 page-hero-overlay" />
+      <div className="relative section-shell py-20 md:py-28">
+        <p className="text-green-400 text-sm font-bold uppercase tracking-[0.15em] mb-2">{badge}</p>
+        <div className="w-12 h-1 bg-green-400 rounded mb-5" />
+        <h1 className="font-display text-5xl font-bold text-white md:text-6xl leading-tight animate-fade-up">
+          {title}
+        </h1>
+        <p className="mt-4 text-lg text-gray-300 max-w-2xl animate-fade-up-d1">{description}</p>
       </div>
     </section>
   )

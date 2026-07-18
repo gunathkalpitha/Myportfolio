@@ -1,67 +1,68 @@
 import { useMemo, useState } from 'react'
 import PageHero from '../components/layout/PageHero'
-import SectionHeading from '../components/SectionHeading'
 import { portfolioData } from '../data/portfolioData'
 
 function PublicationsPage() {
   const { credentials } = portfolioData
-  const [activeCategory, setActiveCategory] = useState('All Categories')
+  const [activeCategory, setActiveCategory] = useState('All')
 
-  const categories = useMemo(() => ['All Categories', ...new Set(credentials.map((item) => item.category))], [credentials])
+  const categories = useMemo(
+    () => ['All', ...new Set(credentials.map((item) => item.category))],
+    [credentials],
+  )
   const filtered = useMemo(
-    () =>
-      activeCategory === 'All Categories'
-        ? credentials
-        : credentials.filter((item) => item.category === activeCategory),
+    () => (activeCategory === 'All' ? credentials : credentials.filter((item) => item.category === activeCategory)),
     [activeCategory, credentials],
   )
 
   return (
     <>
       <PageHero
-        badge="Certifications and Activities"
-        title="Credentials and Community Involvement"
+        badge="Certifications & Activities"
+        title="Credentials"
         description="A curated view of certifications, leadership, and volunteering activities that complement my technical profile."
       />
 
-      <section className="section-shell pb-16 pt-8 md:pb-20 md:pt-10">
-        <SectionHeading
-          kicker="Professional Growth"
-          title="Certificates, Leadership, and Volunteering"
-          description="Track learning milestones and extracurricular contributions by category."
-        />
+      <section className="bg-white">
+        <div className="section-shell py-14 md:py-18">
+          <div className="text-center mb-10">
+            <p className="kicker mb-2 justify-center">Professional Growth</p>
+            <h2 className="font-display text-3xl font-bold text-gray-900 md:text-4xl">Certificates, Leadership & Volunteering</h2>
+          </div>
 
-        <div className="mt-8 flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <button
-              key={category}
-              type="button"
-              onClick={() => setActiveCategory(category)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                activeCategory === category
-                  ? 'bg-primary-600 text-white'
-                  : 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
+          {/* Category filter buttons */}
+          <div className="flex flex-wrap justify-center gap-2 mb-10">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveCategory(cat)}
+                className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 ${
+                  activeCategory === cat
+                    ? 'bg-blue-600 text-white shadow-card'
+                    : 'border border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:text-blue-600'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
 
-        <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((item) => (
-            <article key={item.title} className="soft-card p-6 transition hover:-translate-y-1">
-              <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${item.categoryClass}`}>
-                {item.category}
-              </span>
-              <h3 className="mt-4 text-2xl font-semibold text-slate-900">{item.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">{item.note}</p>
-              <div className="mt-6 text-sm text-slate-500">
-                <p>{item.issuer}</p>
-                <p className="text-primary-700">{item.year}</p>
-              </div>
-            </article>
-          ))}
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((item) => (
+              <article key={item.title} className="soft-card p-6 flex flex-col">
+                <span className={`inline-flex self-start rounded-full px-3 py-1 text-xs font-semibold mb-4 ${item.categoryClass}`}>
+                  {item.category}
+                </span>
+                <h3 className="font-display text-base font-bold text-gray-900 leading-snug mb-2 flex-1">{item.title}</h3>
+                <p className="text-xs leading-relaxed text-gray-500 mb-4">{item.note}</p>
+                <div className="pt-3 border-t border-gray-100">
+                  <p className="text-xs text-gray-500">{item.issuer}</p>
+                  <p className="text-xs font-bold text-blue-600 mt-0.5">{item.year}</p>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
     </>
