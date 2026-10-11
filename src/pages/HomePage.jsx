@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { portfolioData } from '../data/portfolioData'
-import { FaInstagram, FaFacebook, FaLinkedinIn, FaGithub, FaStar } from 'react-icons/fa'
+import profileImg from '../assets/images/profile.png'
+import TechShowcase from '../components/home/TechShowcase'
+import { FaInstagram, FaFacebook, FaLinkedinIn, FaGithub, FaStar, FaMedium } from 'react-icons/fa'
 import {
   Code2,
   Layers,
@@ -13,6 +15,13 @@ import {
   Pause,
   Play,
   Sparkles,
+  Mail,
+  Phone,
+  MapPin,
+  Send,
+  Maximize2,
+  ExternalLink,
+  X,
 } from 'lucide-react'
 
 // ─── Intersection Observer hook for reveal animations ───
@@ -129,7 +138,110 @@ function SkillMarquee({ items, direction = 'left' }) {
 }
 
 function HomePage() {
-  const { hero, about, features, testimonials, contact, fullName } = portfolioData
+  const { hero, about, features, blogs, contact, fullName, testimonials } = portfolioData
+  const [loading, setLoading] = useState(true)
+  const [liveTestimonials, setLiveTestimonials] = useState(testimonials || [])
+  const [mediumPosts, setMediumPosts] = useState([])
+  const [loadingMedium, setLoadingMedium] = useState(true)
+  const [projectFilter, setProjectFilter] = useState('all')
+  const [lightboxProject, setLightboxProject] = useState(null)
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setLightboxProject(null)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  useEffect(() => {
+    // Fetch live Medium articles via RSS feed
+    const fetchMediumArticles = async () => {
+      try {
+        const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@gbgunathkalpitha18')
+        const data = await res.json()
+        if (data?.status === 'ok' && Array.isArray(data.items)) {
+          const parsed = data.items.map((item, idx) => ({
+            id: item.guid || idx,
+            title: item.title,
+            link: item.link,
+            date: new Date(item.pubDate).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            }),
+            category: item.categories?.[0] || 'Software Engineering',
+            image: item.thumbnail || (item.description && item.description.match(/<img[^>]+src="([^">]+)"/)?.[1]) || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80',
+          }))
+          setMediumPosts(parsed)
+        }
+      } catch (err) {
+        console.error('Failed to fetch Medium articles:', err)
+      } finally {
+        setLoadingMedium(false)
+      }
+    }
+    fetchMediumArticles()
+  }, [])
+
+  useEffect(() => {
+    // Fetch live testimonials from Google Sheets CSV
+    const fetchRecommendations = async () => {
+      try {
+        const res = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRI4CJMeBLT1FGpZ1CW95HLcPEzWvZuTQYa9J0qSRCe8iO2MSZPHUJOJBxRAreSRrTDQaIpBXHhIhvz/pub?output=csv')
+        const text = await res.text()
+        
+        const rows = []
+        let currentRow = []
+        let currentCell = ''
+        let inQuotes = false
+        
+        for (let i = 0; i < text.length; i++) {
+          const c = text[i]
+          if (c === '"') {
+            if (inQuotes && text[i+1] === '"') { currentCell += '"'; i++; }
+            else inQuotes = !inQuotes
+          } else if (c === ',' && !inQuotes) {
+            currentRow.push(currentCell)
+            currentCell = ''
+          } else if ((c === '\n' || c === '\r') && !inQuotes) {
+            if (c === '\r' && text[i+1] === '\n') i++ 
+            currentRow.push(currentCell)
+            rows.push(currentRow)
+            currentRow = []
+            currentCell = ''
+          } else {
+            currentCell += c
+          }
+        }
+        if (currentCell || currentRow.length > 0) {
+          currentRow.push(currentCell)
+          rows.push(currentRow)
+        }
+        
+        const parsed = rows.slice(1).filter(row => row.length >= 5).map(row => ({
+          email: row[1] || '',
+          name: row[2] || 'Anonymous',
+          role: row[3] || '',
+          text: row[4] || '',
+          rating: parseInt(row[5]) || 5
+        })).filter(t => t.text.trim() !== '')
+        
+        if (parsed.length > 0) {
+          setLiveTestimonials(parsed)
+        }
+      } catch (err) {
+        console.error("Failed to fetch recommendations:", err)
+      }
+    }
+    fetchRecommendations()
+  }, [])
+
+  useEffect(() => {
+    // Simple fast preloader to ensure smooth initial paint and nice effect
+    const timer = setTimeout(() => setLoading(false), 500)
+    return () => clearTimeout(timer)
+  }, [])
 
   // ── Hero slider ──
   const [slide, setSlide] = useState(0)
@@ -172,6 +284,11 @@ function HomePage() {
   return (
     <div className="bg-white" style={{ fontFamily: "'Inter', sans-serif" }}>
 
+      {/* Preloader */}
+      <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900 transition-opacity duration-1000 pointer-events-none ${loading ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+      </div>
+
       {/* ══════════════════════════════════
           HERO — full-screen dark slider
       ══════════════════════════════════ */}
@@ -184,7 +301,13 @@ function HomePage() {
               i === slide ? 'opacity-100' : 'opacity-0'
             }`}
           >
-            <img src={s.imageUrl} alt={s.caption} className="w-full h-full object-cover" />
+            <img 
+              src={s.imageUrl} 
+              alt={s.caption} 
+              loading={i === 0 ? "eager" : "lazy"} 
+              fetchPriority={i === 0 ? "high" : "auto"}
+              className="w-full h-full object-cover" 
+            />
             <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/70" />
           </div>
         ))}
@@ -262,29 +385,68 @@ function HomePage() {
                 <strong className="text-gray-900">change the way we see the world</strong>, we can{' '}
                 <strong className="text-gray-900">change the world we see</strong>.
               </p>
-              {/* Follow row */}
-              <div className="flex items-center gap-5">
+              {/* Follow row — expandable animated social pill buttons like reference site */}
+              <div className="flex flex-wrap items-center gap-4">
                 <span className="text-sm text-gray-500 font-medium">Follow Me on</span>
-                <div className="h-[1px] w-14 bg-gray-300" />
-                <div className="flex gap-3">
-                  <a href="#" className="w-10 h-10 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-rose-500 hover:border-rose-400 hover:bg-rose-50 transition-all duration-200">
-                    <FaInstagram className="w-4 h-4" />
+                <div className="h-[1px] w-12 bg-gray-300 hidden sm:block" />
+                <div className="flex flex-wrap gap-2.5">
+                  {/* Instagram */}
+                  <a
+                    href={contact.links.find(l => l.label === 'Instagram')?.url || 'https://www.instagram.com/invites/contact/?utm_source=ig_contact_invite&utm_medium=copy_link&utm_content=22x9wt9'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center h-[46px] px-3.5 rounded-xl border border-gray-200 bg-white hover:border-rose-400 hover:bg-rose-50/50 hover:shadow-md transition-all duration-300 ease-out overflow-hidden"
+                  >
+                    <FaInstagram className="w-4 h-4 text-rose-500 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                    <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap text-xs font-semibold text-rose-600 transition-all duration-300 ease-out group-hover:max-w-[200px] group-hover:opacity-100 group-hover:ml-2.5">
+                      Follow on Instagram
+                    </span>
                   </a>
-                  <a href="#" className="w-10 h-10 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200">
-                    <FaFacebook className="w-4 h-4" />
+
+                  {/* Facebook */}
+                  <a
+                    href={contact.links.find(l => l.label === 'Facebook')?.url || 'https://www.facebook.com/share/1d3jijfBY9/'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center h-[46px] px-3.5 rounded-xl border border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50/50 hover:shadow-md transition-all duration-300 ease-out overflow-hidden"
+                  >
+                    <FaFacebook className="w-4 h-4 text-blue-600 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                    <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap text-xs font-semibold text-blue-600 transition-all duration-300 ease-out group-hover:max-w-[200px] group-hover:opacity-100 group-hover:ml-2.5">
+                      Add on Facebook
+                    </span>
                   </a>
-                  <a href={contact.links.find(l => l.label === 'LinkedIn')?.url} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-blue-700 hover:border-blue-500 hover:bg-blue-50 transition-all duration-200">
-                    <FaLinkedinIn className="w-4 h-4" />
+
+                  {/* LinkedIn */}
+                  <a
+                    href={contact.links.find(l => l.label === 'LinkedIn')?.url || 'https://www.linkedin.com/in/gunath-kalpitha/'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center h-[46px] px-3.5 rounded-xl border border-gray-200 bg-white hover:border-blue-500 hover:bg-blue-50/50 hover:shadow-md transition-all duration-300 ease-out overflow-hidden"
+                  >
+                    <FaLinkedinIn className="w-4 h-4 text-blue-700 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                    <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap text-xs font-semibold text-blue-700 transition-all duration-300 ease-out group-hover:max-w-[200px] group-hover:opacity-100 group-hover:ml-2.5">
+                      View My Profile
+                    </span>
                   </a>
-                  <a href={contact.links.find(l => l.label === 'GitHub')?.url} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-800 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200">
-                    <FaGithub className="w-4 h-4" />
+
+                  {/* GitHub */}
+                  <a
+                    href={contact.links.find(l => l.label === 'GitHub')?.url || 'https://github.com/gunathkalpitha'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center h-[46px] px-3.5 rounded-xl border border-gray-200 bg-white hover:border-gray-800 hover:bg-gray-50 hover:shadow-md transition-all duration-300 ease-out overflow-hidden"
+                  >
+                    <FaGithub className="w-4 h-4 text-gray-800 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                    <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap text-xs font-semibold text-gray-800 transition-all duration-300 ease-out group-hover:max-w-[200px] group-hover:opacity-100 group-hover:ml-2.5">
+                      Explore on GitHub
+                    </span>
                   </a>
                 </div>
               </div>
             </FadeLeft>
 
             {/* Purple experience card */}
-            <FadeRight>
+            {/* <FadeRight>
               <div className="relative bg-violet-600 rounded-3xl p-10 text-white text-center shadow-2xl w-52 h-52 flex flex-col items-center justify-center overflow-hidden flex-shrink-0">
                 <div className="absolute -top-6 -right-6 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
                 <p className="text-6xl font-extrabold leading-none">2+</p>
@@ -293,7 +455,7 @@ function HomePage() {
                 </p>
                 <Sparkles className="w-5 h-5 mt-4 opacity-75" />
               </div>
-            </FadeRight>
+            </FadeRight> */}
           </div>
         </div>
       </section>
@@ -307,8 +469,9 @@ function HomePage() {
             {/* Left — full-bleed photo */}
             <FadeLeft className="h-[500px] lg:h-auto">
               <img
-                src="/profile.png"
+                src={profileImg}
                 alt={fullName}
+                loading="lazy"
                 className="w-full h-full object-cover"
                 style={{ objectPosition: 'center 10%' }}
               />
@@ -318,22 +481,16 @@ function HomePage() {
             <FadeRight className="flex flex-col justify-center px-10 md:px-16 py-16">
               <p className="text-xs font-bold tracking-[0.22em] text-gray-500 uppercase mb-5">About</p>
               <h2 className="text-5xl md:text-6xl font-light text-gray-900 mb-3 leading-tight">
-                Gunath <span className="text-amber-500 font-normal">K</span>
+                Gunath <span className="text-amber-500 font-normal">Kalpitha</span>
               </h2>
               <p className="text-gray-500 text-lg mb-8 pb-8 border-b border-gray-200">
-                Software Engineer · Lifelong Learner
+                Computer Engineer · Lifelong Learner
               </p>
-              <p className="text-gray-600 leading-loose mb-4 text-[15px]">
-                I want to inspire student communities as much as possible with all my skills and capabilities — a
-                purpose-driven community, globally, instead of everyone going with the flow.
-              </p>
-              <p className="text-gray-600 leading-loose mb-6 text-[15px]">
-                I am a Computer Engineering undergraduate at the Faculty of Engineering, University of Ruhuna,
-                building secure full-stack systems and scalable mobile applications.
-              </p>
-              <p className="text-gray-400 italic text-sm font-light">
-                "If we can change the way we see the world, we can change the world we see."
-              </p>
+              {about.map((text, i) => (
+                <p key={i} className={`text-gray-600 leading-loose mb-4 text-[15px] ${i === about.length - 1 ? 'italic font-light text-gray-400' : ''}`}>
+                  {i === about.length - 1 ? `"${text}"` : text}
+                </p>
+              ))}
             </FadeRight>
           </div>
         </div>
@@ -365,34 +522,9 @@ function HomePage() {
             </div>
           </FadeLeft>
 
-          {/* Right — decorative cloud element on dark bg */}
-          <FadeRight className="flex items-center justify-center py-12">
-            <div className="relative">
-              {/* Abstract cloud */}
-              <div className="relative w-56 h-44 text-white">
-                <svg viewBox="0 0 220 160" className="w-full h-full drop-shadow-2xl fill-white">
-                  <path d="M170 65 A55 55 0 0 0 65 65 A45 45 0 0 0 65 155 L170 155 A45 45 0 0 0 170 65 Z" />
-                </svg>
-              </div>
-              {/* Lines extending left */}
-              <div className="absolute top-1/3 right-full flex flex-col gap-3 pr-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-blue-400 animate-pulse" />
-                  <div className="h-0.5 w-28 bg-blue-400/60 rounded-full" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-white/80 animate-pulse" style={{ animationDelay: '0.7s' }} />
-                  <div className="h-0.5 w-40 bg-white/30 rounded-full" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded bg-blue-300/80 animate-pulse" style={{ animationDelay: '1.3s' }} />
-                  <div className="h-0.5 w-20 bg-blue-300/40 rounded-full" />
-                </div>
-              </div>
-              {/* Square accents */}
-              <div className="absolute -top-6 right-0 w-5 h-5 bg-blue-500/60 rounded-sm" />
-              <div className="absolute -bottom-4 left-4 w-4 h-4 bg-blue-400/40 rounded-sm" />
-            </div>
+          {/* Right — interactive tech architecture & skills console on dark bg */}
+          <FadeRight className="flex items-center justify-center w-full">
+            <TechShowcase />
           </FadeRight>
         </div>
       </section>
@@ -402,34 +534,7 @@ function HomePage() {
       ══════════════════════════════════ */}
       <section id="offerings" className="bg-white">
         {/* Tag rows — split dark/light */}
-        <div className="flex">
-          {/* Light side tags */}
-          <div className="w-1/2 bg-white py-8 pr-8 pl-6 space-y-3 overflow-hidden">
-            <div className="flex flex-wrap gap-3">
-              {['Branding', 'Creative Design', 'Motion Design'].map(t => (
-                <span key={t} className="px-4 py-2 rounded-full border border-gray-200 text-sm font-medium text-gray-600 bg-gray-50 hover:border-gray-400 transition-colors">{t}</span>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-3">
-              {['Product Design', 'Web Design', 'UI/UX Audits', '+ More'].map(t => (
-                <span key={t} className="px-4 py-2 rounded-full border border-gray-200 text-sm font-medium text-gray-600 bg-gray-50 hover:border-gray-400 transition-colors">{t}</span>
-              ))}
-            </div>
-          </div>
-          {/* Dark side tags */}
-          <div className="w-1/2 bg-slate-900 py-8 pl-8 pr-6 space-y-3 overflow-hidden">
-            <div className="flex flex-wrap gap-3">
-              {['Growth Strategy', 'Lead Nurturing', 'SEO'].map(t => (
-                <span key={t} className="px-4 py-2 rounded-full border border-white/15 text-sm font-medium text-gray-200 hover:bg-white/10 transition-colors">{t}</span>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-3">
-              {['Performance Marketing', 'Go To Market', '+ More'].map(t => (
-                <span key={t} className="px-4 py-2 rounded-full border border-white/15 text-sm font-medium text-gray-200 hover:bg-white/10 transition-colors">{t}</span>
-              ))}
-            </div>
-          </div>
-        </div>
+       
 
         {/* Cards grid */}
         <div className="max-w-7xl mx-auto px-6 py-20">
@@ -478,117 +583,482 @@ function HomePage() {
       </section>
 
       {/* ══════════════════════════════════
-          TESTIMONIALS
+          BLOGS
       ══════════════════════════════════ */}
-      <section id="testimonials" className="bg-[#f5f5f0] py-16">
+      <section id="blogs" className="bg-[#f5f5f0] py-16">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="bg-white rounded-3xl overflow-hidden" style={{ borderTop: '6px solid #22c55e' }}>
+          <div className="bg-white rounded-3xl overflow-hidden" style={{ borderTop: '6px solid #3b82f6' }}>
             <div className="px-10 md:px-16 pt-14 pb-10">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
                 <div>
-                  <p className="text-orange-500 font-bold text-sm mb-3 uppercase tracking-wider">My Testimonials</p>
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                    What They're Talking About{' '}
-                    <span className="text-green-500">{fullName.split(' ')[0]}</span>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <p className="text-blue-500 font-bold text-xs uppercase tracking-wider">
+                      Medium Publication · @gbgunathkalpitha18
+                    </p>
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-display">
+                    Latest <span className="text-blue-500">Articles</span>
                   </h2>
-                  <p className="text-gray-400 mt-3 text-base">
-                    Authentic stories and endorsements from satisfied clients. Click any card to read the full recommendation.
+                  <p className="text-gray-400 mt-2 text-base">
+                    Thoughts, learnings, and technical deep-dives on Software Engineering & Architecture.
                   </p>
                 </div>
-                <button className="shrink-0 flex items-center gap-2 px-6 py-3 bg-blue-500 text-white text-sm font-semibold rounded-xl hover:bg-blue-600 active:scale-95 transition-all duration-200 shadow-lg shadow-blue-500/20">
-                  + Your Feedback
-                </button>
+
+                <a
+                  href="https://medium.com/@gbgunathkalpitha18/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 hover:bg-black text-white text-sm font-semibold transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5 group"
+                >
+                  <FaMedium className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <span>Read on Medium</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </a>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-5">
-                {testimonials.map((t, i) => (
-                  <FadeUp key={i} delay={i * 100}>
-                    <div className="bg-gray-50 rounded-2xl p-7 hover:bg-white hover:shadow-lg border border-transparent hover:border-gray-100 transition-all duration-300 flex flex-col h-full cursor-pointer">
-                      <div className="flex items-start gap-3 mb-5">
-                        <img src={t.avatar} alt={t.name} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow" />
-                        <div>
-                          <h4 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
-                            <div className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
-                            {t.name}
-                          </h4>
-                          <p className="text-xs text-gray-500 mt-1">{t.role}</p>
+              {mediumPosts.length > 0 ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {mediumPosts.map((blog, i) => (
+                    <FadeUp key={blog.id || i} delay={i * 100}>
+                      <a
+                        href={blog.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300"
+                      >
+                        <div className="relative h-48 overflow-hidden bg-gray-100">
+                          <img
+                            src={blog.image}
+                            alt={blog.title}
+                            loading="lazy"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute top-4 left-4 bg-slate-900/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center gap-1.5">
+                            <FaMedium className="w-3 h-3 text-amber-400" />
+                            {blog.category}
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex gap-0.5 mb-4">
-                        {[...Array(t.rating)].map((_, k) => <FaStar key={k} className="w-4 h-4 text-yellow-400" />)}
-                      </div>
-                      <p className="text-sm text-gray-500 leading-relaxed flex-1 mb-5 line-clamp-5">{t.text}</p>
-                      <a href="#" className="text-green-600 text-sm font-semibold hover:text-green-700 inline-flex items-center gap-1 transition-colors">
-                        Read full recommendation <ArrowRight className="w-3 h-3" />
+                        <div className="p-6">
+                          <div className="flex justify-between items-center text-xs text-gray-400 mb-3 font-medium">
+                            <span>{blog.date}</span>
+                            <span>by {fullName.split(' ')[0]}</span>
+                          </div>
+                          <h4 className="font-bold text-gray-900 text-lg mb-4 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                            {blog.title}
+                          </h4>
+                          <span className="text-blue-600 text-sm font-semibold inline-flex items-center gap-1">
+                            Read on Medium <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </span>
+                        </div>
                       </a>
+                    </FadeUp>
+                  ))}
+                </div>
+              ) : (
+                /* Connected Medium Profile Showcase when no posts yet */
+                <FadeUp>
+                  <div className="rounded-2xl border border-gray-200/80 bg-gradient-to-br from-gray-50 via-white to-blue-50/30 p-8 md:p-12 text-center max-w-3xl mx-auto shadow-sm">
+                    <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center mx-auto mb-6 shadow-md shadow-slate-900/20 group hover:scale-105 transition-transform">
+                      <FaMedium className="w-8 h-8" />
                     </div>
-                  </FadeUp>
-                ))}
-              </div>
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold mb-4 border border-emerald-200">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Live Feed Connected · @gbgunathkalpitha18
+                    </div>
+                    <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 font-display">
+                      Writing on Software Engineering & Architecture
+                    </h3>
+                    <p className="text-gray-600 max-w-xl mx-auto mb-6 text-[15px] leading-relaxed">
+                      Articles and deep-dives on Full-Stack Development, Flutter Systems, Clean Code, and Scalable APIs will synchronize here automatically as they are published.
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-2 mb-8">
+                      {['Full-Stack Engineering', 'Flutter & Mobile', 'API Design', 'System Architecture', 'Clean Code'].map((topic) => (
+                        <span key={topic} className="px-3.5 py-1.5 rounded-full bg-white border border-gray-200 text-xs font-medium text-gray-700 shadow-2xs">
+                          #{topic}
+                        </span>
+                      ))}
+                    </div>
+                    <a
+                      href="https://medium.com/@gbgunathkalpitha18/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-slate-900 hover:bg-black text-white text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      <FaMedium className="w-4 h-4" />
+                      <span>Follow @gbgunathkalpitha18 on Medium</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </a>
+                  </div>
+                </FadeUp>
+              )}
             </div>
           </div>
         </div>
       </section>
 
       {/* ══════════════════════════════════
-          PROJECTS — featured cards
+          PROJECTS — Januda J Kodithuwakku style
       ══════════════════════════════════ */}
-      <section id="projects" className="bg-white py-20">
+      <section id="projects" className="bg-white py-24 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
-          <FadeUp className="text-center mb-14">
-            <p className="text-xs font-bold tracking-[0.22em] text-green-600 uppercase mb-3">Portfolio</p>
-            <h2 className="text-4xl font-bold text-gray-900 mb-3">Featured Projects</h2>
-            <p className="text-gray-400 text-lg">Engineering solutions built with precision.</p>
+          {/* Header with ambient glow, subtitle, and title */}
+          <FadeUp className="text-center mb-12 relative">
+            <div className="relative inline-block">
+              <div className="w-24 h-24 rounded-full bg-blue-100/70 absolute -top-5 left-1/2 -translate-x-1/2 -z-10 blur-xl pointer-events-none" />
+              <p className="text-sm md:text-base font-medium text-slate-500 italic mb-2 tracking-wide font-serif">
+                Engineering solutions built with precision and passion
+              </p>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-8">
+              Projects
+            </h2>
+
+            {/* Filter Tabs with active underline animation */}
+            <div className="flex items-center justify-center gap-3 md:gap-6 flex-wrap">
+              {[
+                { id: 'all', label: 'All Work' },
+                { id: 'mobile', label: 'Mobile & Web Platforms' },
+                { id: 'iot', label: 'IoT & Embedded Systems' },
+              ].map((tab) => {
+                const isActive = projectFilter === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setProjectFilter(tab.id)}
+                    className={`relative pb-2 px-3 text-sm md:text-base font-semibold transition-colors duration-200 ${
+                      isActive ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    {isActive && (
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full transition-all duration-300" />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
           </FadeUp>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {portfolioData.projects.map((project, i) => {
-              const accents = ['bg-blue-500', 'bg-emerald-500', 'bg-amber-500']
-              return (
+          {/* Project Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {portfolioData.projects
+              .filter((p) => projectFilter === 'all' || p.filterCategory === projectFilter)
+              .map((project, i) => (
                 <FadeUp key={project.title} delay={i * 100}>
-                  <div className="group border border-gray-100 rounded-2xl p-7 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
-                    <div className={`h-1 w-12 rounded-full ${accents[i]} mb-6`} />
-                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">{project.category}</p>
-                    <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">{project.title}</h3>
-                    <p className="text-sm text-gray-500 leading-relaxed flex-1 mb-5">{project.summary}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {project.tags.map(tag => (
-                        <span key={tag} className="px-2.5 py-1 rounded-full bg-gray-100 text-xs font-medium text-gray-600">{tag}</span>
+                  <div className="group relative bg-white rounded-3xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_45px_-12px_rgba(37,99,235,0.15)] hover:border-blue-300 hover:-translate-y-2 transition-all duration-500 ease-out flex flex-col h-full">
+                    {/* Mockup Showcase Container */}
+                    <div
+                      className="relative overflow-hidden rounded-2xl bg-slate-950 aspect-[16/10] mb-5 group/thumb cursor-pointer shadow-inner border border-slate-900/10"
+                      onClick={() => setLightboxProject(project)}
+                    >
+                      <img
+                        src={project.image}
+                        alt={project.title}
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                        loading="lazy"
+                      />
+                      {/* Badge pill on image */}
+                      <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-slate-950/75 backdrop-blur-md text-[11px] font-semibold text-white tracking-wide border border-white/10 shadow-sm flex items-center gap-1.5 z-10">
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            project.id === 'nbro'
+                              ? 'bg-sky-400 animate-pulse'
+                              : project.id === 'sentry'
+                              ? 'bg-emerald-400 animate-pulse'
+                              : 'bg-amber-400 animate-pulse'
+                          }`}
+                        />
+                        {project.badge}
+                      </div>
+                      {/* Hover overlay with zoom and live link icons */}
+                      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3 z-20">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setLightboxProject(project)
+                          }}
+                          className="w-12 h-12 rounded-full bg-white text-slate-900 hover:bg-blue-600 hover:text-white flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-200"
+                          title="Inspect Architecture Diagram"
+                        >
+                          <Maximize2 className="w-5 h-5" />
+                        </button>
+                        {project.liveUrl && (
+                          <a
+                            href={project.liveUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-12 h-12 rounded-full bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-200"
+                            title="Open Live Project"
+                          >
+                            <ExternalLink className="w-5 h-5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Content details */}
+                    <p className="text-xs font-bold uppercase tracking-wider text-blue-600 mb-2">
+                      {project.category}
+                    </p>
+                    <h3
+                      onClick={() => setLightboxProject(project)}
+                      className="text-lg md:text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors duration-200 mb-2.5 cursor-pointer line-clamp-2 min-h-[3.5rem] flex items-start"
+                    >
+                      {project.title}
+                    </h3>
+                    <p className="text-sm text-slate-500 leading-relaxed mb-5 flex-1 line-clamp-3">
+                      {project.summary}
+                    </p>
+
+                    {/* Tag pills */}
+                    <div className="flex flex-wrap gap-1.5 mb-5">
+                      {project.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2.5 py-1 rounded-lg bg-slate-50 text-[11px] font-medium text-slate-600 border border-slate-200/60 group-hover:border-blue-100 transition-colors"
+                        >
+                          {tag}
+                        </span>
                       ))}
+                    </div>
+
+                    {/* Card bottom action */}
+                    <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setLightboxProject(project)}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-blue-600 uppercase tracking-wider group/link transition-colors"
+                      >
+                        <span>View Architecture</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform duration-200" />
+                      </button>
+                      {project.liveUrl ? (
+                        <a
+                          href={project.liveUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white text-xs font-bold transition-all shadow-sm"
+                        >
+                          <span>Live Demo</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <span className="text-[11px] text-slate-400 font-medium">Click to inspect</span>
+                      )}
                     </div>
                   </div>
                 </FadeUp>
-              )
-            })}
+              ))}
+          </div>
+        </div>
+
+        {/* Lightbox Modal */}
+        {lightboxProject && (
+          <div
+            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 md:p-8"
+            onClick={() => setLightboxProject(null)}
+          >
+            <div
+              className="bg-white rounded-3xl max-w-4xl w-full overflow-hidden shadow-2xl border border-white/20 relative max-h-[92vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Top Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                    {lightboxProject.badge}
+                  </span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-xs font-medium text-slate-500">{lightboxProject.category}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setLightboxProject(null)}
+                  className="w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 flex items-center justify-center transition-colors"
+                  title="Close (Esc)"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="overflow-y-auto p-6 md:p-8 space-y-6">
+                <div className="rounded-2xl overflow-hidden bg-slate-950 shadow-inner border border-slate-800">
+                  <img
+                    src={lightboxProject.image}
+                    alt={lightboxProject.title}
+                    className="w-full h-auto object-contain max-h-[58vh] mx-auto"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-2">{lightboxProject.title}</h3>
+                  <p className="text-base text-slate-600 leading-relaxed mb-5">{lightboxProject.summary}</p>
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                    <div className="flex flex-wrap gap-2">
+                      {lightboxProject.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-3 py-1 rounded-full bg-blue-50 text-xs font-semibold text-blue-700 border border-blue-200/60"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    {lightboxProject.liveUrl && (
+                      <a
+                        href={lightboxProject.liveUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-md hover:shadow-lg transition-all ml-auto"
+                      >
+                        <span>Visit Live Project</span>
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* ══════════════════════════════════
+          RECOMMENDATIONS
+      ══════════════════════════════════ */}
+      <section className="py-24 bg-[#f8f9fa] border-y border-gray-100 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 mb-12">
+          <FadeUp className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+            <div>
+              <p className="text-xs font-bold tracking-[0.22em] text-blue-600 uppercase mb-3">Testimonials</p>
+              <h2 className="text-4xl font-bold text-gray-900">What People Say</h2>
+            </div>
+            <a 
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdTu-4bdi3fGaBMREnURcWl7PYGRr6rufeUEPRNU0URwX2rnA/viewform?usp=dialog" 
+              target="_blank" 
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-full hover:border-blue-500 hover:text-blue-600 shadow-sm hover:shadow transition-all"
+              title="Sign in to your Google Account to submit a recommendation"
+            >
+              Leave a recommendation <ArrowRight className="w-4 h-4" />
+            </a>
+          </FadeUp>
+        </div>
+        
+        {/* Full Width Marquee */}
+        <div className="w-full pb-8">
+          <div className="flex gap-6 animate-marquee-left" style={{ width: 'max-content' }}>
+            {liveTestimonials && liveTestimonials.length > 0 ? (
+              [...liveTestimonials, ...liveTestimonials, ...liveTestimonials, ...liveTestimonials].slice(0, 10).map((item, i) => (
+                <div key={i} className="w-[450px] bg-white border border-gray-100 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow flex flex-col whitespace-normal">
+                  <div className="flex gap-1 mb-4 text-yellow-400">
+                    {[...Array(item.rating || 5)].map((_, k) => <FaStar key={k} className="w-4 h-4" />)}
+                  </div>
+                  <p className="text-gray-600 leading-relaxed mb-8 flex-1 text-lg">"{item.text}"</p>
+                  <div className="flex items-center gap-4 pt-6 border-t border-gray-50 mt-auto">
+                    <img 
+                      src={item.email ? `https://unavatar.io/${item.email}?fallback=https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=random` : `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=random`} 
+                      alt={item.name} 
+                      className="w-12 h-12 rounded-full object-cover bg-gray-200 border border-gray-200 shadow-sm"
+                      loading="lazy"
+                    />
+                    <div>
+                      <p className="font-bold text-gray-900 text-base">{item.name}</p>
+                      {item.role && <p className="text-sm text-gray-500">{item.role}</p>}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="w-screen px-6">
+                <div className="max-w-7xl mx-auto bg-white border border-gray-100 rounded-3xl p-10 shadow-sm text-center">
+                  <p className="text-gray-600 text-lg">No recommendations yet. Be the first to leave one!</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
       {/* ══════════════════════════════════
-          CONTACT — dark freelance section + huge quote
+          CONTACT
       ══════════════════════════════════ */}
-      <section id="contact">
-        {/* Dark freelance strip */}
-        <div className="bg-slate-900 py-20">
-          <div className="max-w-7xl mx-auto px-6 text-center">
-            <FadeUp>
-              <p className="text-white/50 text-sm uppercase tracking-widest mb-4 font-medium">Available for opportunities</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                Want to work together!<br />
-                <span className="text-white/70 font-light text-2xl md:text-3xl">Open to internships, collaborations &amp; engineering opportunities.</span>
-              </h2>
-              <a
-                href={`mailto:${contact.email}`}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black font-bold rounded-full text-sm hover:bg-gray-100 active:scale-95 transition-all duration-200 shadow-xl mt-4"
-              >
-                Contact Me
-              </a>
-            </FadeUp>
+      <section id="contact" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16">
+            
+            {/* Left side - Contact Info */}
+            <FadeLeft className="flex flex-col justify-center">
+              <p className="text-xs font-bold tracking-[0.22em] text-blue-600 uppercase mb-3">Get in Touch</p>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">Let's work together!</h2>
+              <p className="text-gray-500 mb-10 leading-relaxed text-lg">
+                I'm open to internships, collaborations & engineering opportunities. Fill out the form or reach out via email.
+              </p>
+
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Email</p>
+                    <p className="text-gray-500">{contact.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Phone</p>
+                    <p className="text-gray-500">{contact.phone}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Location</p>
+                    <p className="text-gray-500">{contact.location}</p>
+                  </div>
+                </div>
+              </div>
+            </FadeLeft>
+
+            {/* Right side - Formspree form */}
+            <FadeRight>
+              <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-2xl shadow-blue-900/5">
+                <form action="https://formspree.io/f/mjygrrlq" method="POST" className="space-y-6">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <input type="text" name="name" id="name" required className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50" placeholder="Your name" />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <input type="email" name="email" id="email" required className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50" placeholder="youremail@example.com" />
+                  </div>
+                  <div>
+                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                    <textarea name="message" id="message" rows="4" required className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 resize-none" placeholder="Tell me about your project..."></textarea>
+                  </div>
+                  <button type="submit" className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 active:scale-[0.98] transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2">
+                    Send Message <Send className="w-4 h-4" />
+                  </button>
+                </form>
+              </div>
+            </FadeRight>
+
           </div>
         </div>
 
         {/* Giant quote */}
-        <div className="bg-[#f0f0ec] py-28 text-center">
+        <div className="bg-[#f0f0ec] py-28 text-center mt-24">
           <FadeUp>
             <p className="text-4xl md:text-5xl lg:text-6xl font-light text-slate-700 max-w-4xl mx-auto leading-tight px-6">
               "Powering An Extraordinary Future<br />With Infinite Possibilities"
