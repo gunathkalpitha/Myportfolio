@@ -1,5 +1,6 @@
 import { portfolioData } from '../../data/portfolioData'
-import { FaLinkedinIn, FaGithub, FaInstagram } from 'react-icons/fa'
+import logoImg from '../../assets/images/logo.jpg'
+import { FaLinkedinIn, FaGithub, FaInstagram, FaFacebook } from 'react-icons/fa'
 
 function Footer() {
   const { contact, fullName, navItems } = portfolioData
@@ -12,19 +13,68 @@ function Footer() {
         <div className="grid md:grid-cols-3 gap-12">
           {/* Brand */}
           <div>
-            <p className="font-bold text-2xl tracking-tight text-slate-800 mb-4">GUNATH</p>
+            <div className="flex items-center gap-3 mb-4">
+              <img
+                src={logoImg}
+                alt={fullName}
+                className="w-10 h-10 object-cover rounded-xl border border-slate-300 shadow-sm"
+              />
+              <div className="flex flex-col leading-none">
+                <span className="font-bold text-lg tracking-[0.2em] text-slate-800 uppercase font-display">
+                  GUNATH
+                </span>
+                <span className="text-[9px] font-semibold tracking-[0.3em] text-slate-400 uppercase mt-1">
+                  KALPITHA
+                </span>
+              </div>
+            </div>
             <p className="text-sm text-slate-500 leading-relaxed max-w-xs">
               Computer Engineering undergraduate building secure full-stack systems and scalable mobile applications.
             </p>
-            <div className="flex gap-3 mt-6">
-              <a href="#" className="w-9 h-9 rounded-full border border-slate-300 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:border-rose-400 transition-all duration-200">
-                <FaInstagram className="w-3.5 h-3.5" />
+            <div className="flex flex-wrap gap-2.5 mt-6">
+              <a
+                href={contact.links.find(l => l.label === 'Instagram')?.url || 'https://www.instagram.com/invites/contact/?utm_source=ig_contact_invite&utm_medium=copy_link&utm_content=22x9wt9'}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex items-center h-10 px-3 rounded-xl border border-slate-300 bg-white hover:border-rose-400 hover:bg-rose-50/50 hover:shadow-sm transition-all duration-300 ease-out overflow-hidden"
+              >
+                <FaInstagram className="w-3.5 h-3.5 text-rose-500 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap text-xs font-semibold text-rose-600 transition-all duration-300 ease-out group-hover:max-w-[160px] group-hover:opacity-100 group-hover:ml-2">
+                  Instagram
+                </span>
               </a>
-              <a href={contact.links.find(l => l.label === 'LinkedIn')?.url} target="_blank" rel="noreferrer" className="w-9 h-9 rounded-full border border-slate-300 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-400 transition-all duration-200">
-                <FaLinkedinIn className="w-3.5 h-3.5" />
+              <a
+                href={contact.links.find(l => l.label === 'Facebook')?.url || 'https://www.facebook.com/share/1d3jijfBY9/'}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex items-center h-10 px-3 rounded-xl border border-slate-300 bg-white hover:border-blue-400 hover:bg-blue-50/50 hover:shadow-sm transition-all duration-300 ease-out overflow-hidden"
+              >
+                <FaFacebook className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap text-xs font-semibold text-blue-600 transition-all duration-300 ease-out group-hover:max-w-[160px] group-hover:opacity-100 group-hover:ml-2">
+                  Facebook
+                </span>
               </a>
-              <a href={contact.links.find(l => l.label === 'GitHub')?.url} target="_blank" rel="noreferrer" className="w-9 h-9 rounded-full border border-slate-300 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-500 transition-all duration-200">
-                <FaGithub className="w-3.5 h-3.5" />
+              <a
+                href={contact.links.find(l => l.label === 'LinkedIn')?.url}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex items-center h-10 px-3 rounded-xl border border-slate-300 bg-white hover:border-blue-500 hover:bg-blue-50/50 hover:shadow-sm transition-all duration-300 ease-out overflow-hidden"
+              >
+                <FaLinkedinIn className="w-3.5 h-3.5 text-blue-700 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap text-xs font-semibold text-blue-700 transition-all duration-300 ease-out group-hover:max-w-[160px] group-hover:opacity-100 group-hover:ml-2">
+                  LinkedIn
+                </span>
+              </a>
+              <a
+                href={contact.links.find(l => l.label === 'GitHub')?.url}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex items-center h-10 px-3 rounded-xl border border-slate-300 bg-white hover:border-slate-800 hover:bg-slate-50 hover:shadow-sm transition-all duration-300 ease-out overflow-hidden"
+              >
+                <FaGithub className="w-3.5 h-3.5 text-slate-800 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap text-xs font-semibold text-slate-800 transition-all duration-300 ease-out group-hover:max-w-[160px] group-hover:opacity-100 group-hover:ml-2">
+                  GitHub
+                </span>
               </a>
             </div>
           </div>

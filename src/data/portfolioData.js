@@ -1,11 +1,20 @@
+import nbroImg from '../assets/images/nbro.png'
+import sentryImg from '../assets/images/sentry.png'
+import lustraImg from '../assets/images/Lustra.png'
+import heroEngineering from '../assets/images/hero-engineering.webp'
+import heroCloud from '../assets/images/hero-cloud.webp'
+import heroMobile from '../assets/images/hero-mobile.webp'
+import heroCollaboration from '../assets/images/hero-collaboration.webp'
+
 export const portfolioData = {
-  brand: 'GUNATH',
+  brand: 'GUNATH KALPITHA',
   fullName: 'Gunath Kalpitha',
   navItems: [
     { label: 'Home', to: '#home' },
     { label: 'About', to: '#about' },
     { label: 'Skills', to: '#skills' },
     { label: 'Projects', to: '#projects' },
+    { label: 'Blogs', to: '#blogs' },
     { label: 'Contact', to: '#contact' },
   ],
   hero: {
@@ -19,29 +28,25 @@ export const portfolioData = {
         id: 'engineering-workspace',
         caption: 'Crafting Innovative Software',
         subtitle: 'Building modern web and mobile applications',
-        imageUrl:
-          'https://images.unsplash.com/photo-1518773553398-650c184e0bb3?auto=format&fit=crop&w=2200&q=80',
+        imageUrl: heroEngineering,
       },
       {
         id: 'cloud-app-development',
         caption: 'Engineering Scalable Solutions',
         subtitle: 'Delivering clean architecture from concept to deployment',
-        imageUrl:
-          'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2200&q=80',
+        imageUrl: heroCloud,
       },
       {
         id: 'mobile-development',
         caption: 'Building Mobile Experiences',
         subtitle: 'Cross-platform apps with Flutter, Dart and modern mobile UX',
-        imageUrl:
-          'https://images.unsplash.com/photo-1526498460520-4c246339dccb?auto=format&fit=crop&w=2200&q=80',
+        imageUrl: heroMobile,
       },
       {
         id: 'innovation-competition',
         caption: 'Innovation Through Collaboration',
         subtitle: 'Creating real-world solutions by working as a team',
-        imageUrl:
-          'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2200&q=80',
+        imageUrl: heroCollaboration,
       },
     ],
   },
@@ -52,33 +57,36 @@ export const portfolioData = {
   ],
   highlightTags: ['React', 'Node.js', 'Flutter', 'Supabase', 'Next.js', 'TypeScript'],
   about: [
-    'I am a Computer Engineering undergraduate at the Faculty of Engineering, University of Ruhuna, with a passion for software engineering and full-stack development.',
-    'I build secure mobile applications and scalable backend systems using Java, Node.js, React, and Flutter, while applying cloud-native concepts to deliver robust end-to-end products.',
+    'I am a Computer Engineering undergraduate at the Faculty of Engineering, University of Ruhuna, building secure full-stack systems and scalable mobile applications.',
+    'I want to inspire student communities as much as possible with all my skills and capabilities.',
+    'A purpose driven community, globally, instead of everyone going with the flow.',
+    'If we can change the way we see the world, we can change the world we see.',
+    
   ],
   skillCategories: [
     {
       title: 'Programming Languages',
-      items: ['Java', 'JavaScript', 'Python (Basic)', 'C++ (Basic)', 'Dart (Basic)'],
+      items: ['Java', 'JavaScript', 'Python', 'C++', 'Dart'],
     },
     {
       title: 'Frontend Development',
-      items: ['React', 'Tailwind CSS', 'HTML', 'CSS', 'Responsive UI Design'],
+      items: ['React', 'Tailwind CSS', 'HTML', 'CSS', 'Responsive UI Design','Flutter','Angular'],
     },
     {
       title: 'Backend Development',
-      items: ['Node.js', 'Express.js', 'RESTful APIs', 'Authentication', 'Server Integration'],
+      items: ['Node.js', 'Express.js','Spring Boot', 'RESTful APIs', 'Authentication', 'Server Integration'],
     },
     {
       title: 'Databases',
-      items: ['MongoDB', 'MySQL (Basic)', 'PostgreSQL', 'Supabase Storage'],
+      items: ['MongoDB', 'MySQL', 'PostgreSQL',],
     },
     {
       title: 'Cloud Technologies',
-      items: ['Firebase', 'Supabase', 'Edge Functions', 'Offline Data Sync'],
+      items: ['Firebase', 'Supabase','AWS','InfluxDB'],
     },
     {
       title: 'DevOps and Version Control',
-      items: ['Git', 'GitHub', 'Docker', 'Release Management'],
+      items: ['Git', 'GitHub', 'Docker', 'Release Management','Jenkins'],
     },
   ],
   features: [
@@ -115,25 +123,40 @@ export const portfolioData = {
   ],
   projects: [
     {
+      id: 'nbro',
       title: 'Digital Inspection System for NBRO',
       category: 'Cross-Platform Field Inspection Platform',
+      filterCategory: 'mobile',
+      image: nbroImg,
+      liveUrl: 'https://gunathkalpitha.github.io/Digital-Inspection-System-NBRO-manual-/',
       summary: 'Built a cross-platform digital inspection and pre-crack survey system for infrastructure projects with GPS-tagged records, image capture, offline-first workflows, and web-based administration.',
       tags: ['Flutter', 'Supabase', 'PostgreSQL', 'Google Maps API', 'Web Dashboard'],
       toneClass: 'from-sky-50 to-cyan-50',
+      badge: 'Field Engineering',
     },
     {
+      id: 'sentry',
       title: 'Project Sentry (2025)',
       category: 'Software Management System',
+      filterCategory: 'iot',
+      image: sentryImg,
+      liveUrl: 'https://gunathkalpitha.github.io/IoT-sentry-project/',
       summary: 'Contributed to the design and development of an energy and safety management system selected as a Top 8 finalist in the FINC25 competition organized by the IEEE Student Branch, University of Moratuwa.',
-      tags: ['Software Engineering', 'Energy Monitoring', 'Team Collaboration'],
+      tags: ['Software Engineering', 'Energy Monitoring', 'Team Collaboration', 'ESP32 & IoT'],
       toneClass: 'from-emerald-50 to-teal-50',
+      badge: 'IEEE FINC25 Top 8',
     },
     {
+      id: 'lustra',
       title: 'Lustra Smart App (2025)',
       category: 'Mobile Ecosystem',
+      filterCategory: 'mobile',
+      image: lustraImg,
+      liveUrl: null,
       summary: 'Developed a companion mobile app with synchronized data, personalized tracking, and real-time notifications, integrating modern mobile UX with backend services.',
-      tags: ['Flutter', 'Dart', 'Real-Time Notifications', 'UX/UI'],
+      tags: ['Flutter', 'Dart', 'Real-Time Notifications', 'UX/UI', 'Smart Ecosystem'],
       toneClass: 'from-amber-50 to-orange-50',
+      badge: 'Smart Wearable UX',
     },
   ],
   credentials: [
@@ -179,10 +202,13 @@ export const portfolioData = {
       detail: 'Experienced in taking products from idea to implementation across mobile apps and cloud-backed dashboards.',
     },
   ],
-  testimonials: [
-   
-    
-  ],
+  testimonials: [],
+  blogs: [],
+  medium: {
+    username: '@gbgunathkalpitha18',
+    profileUrl: 'https://medium.com/@gbgunathkalpitha18/',
+    feedUrl: 'https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@gbgunathkalpitha18',
+  },
   contact: {
     subtitle: 'Open to internships, collaborations, and software engineering opportunities.',
     details: [
@@ -190,6 +216,9 @@ export const portfolioData = {
       'Phone: +94 70 355 1607',
       'LinkedIn: linkedin.com/in/gunath-kalpitha',
       'GitHub: github.com/gunathkalpitha',
+      'Medium: medium.com/@gbgunathkalpitha18',
+      'Facebook: facebook.com/share/1d3jijfBY9',
+      'Instagram: @gunath_kalpitha',
       'Portfolio: gunath.netlify.app',
     ],
     email: 'gbgunathkalpitha18@gmail.com',
@@ -198,6 +227,9 @@ export const portfolioData = {
     links: [
       { label: 'LinkedIn', url: 'https://www.linkedin.com/in/gunath-kalpitha/' },
       { label: 'GitHub', url: 'https://github.com/gunathkalpitha' },
+      { label: 'Medium', url: 'https://medium.com/@gbgunathkalpitha18/' },
+      { label: 'Facebook', url: 'https://www.facebook.com/share/1d3jijfBY9/' },
+      { label: 'Instagram', url: 'https://www.instagram.com/invites/contact/?utm_source=ig_contact_invite&utm_medium=copy_link&utm_content=22x9wt9' },
       { label: 'Portfolio', url: 'https://gunath.netlify.app/' },
     ],
   },

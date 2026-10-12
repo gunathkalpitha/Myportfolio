@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { portfolioData } from '../../data/portfolioData'
+import logoImg from '../../assets/images/logo.jpg'
 
 function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -30,6 +31,7 @@ function Navbar() {
     { label: 'Home', href: '#home' },
     { label: 'About', href: '#about' },
     { label: 'Skills', href: '#skills' },
+    { label: 'Blogs', href: '#blogs' },
     { label: 'Projects', href: '#projects' },
     { label: 'Contact', href: '#contact' },
   ]
@@ -43,17 +45,30 @@ function Navbar() {
       }`}
     >
       <nav className="max-w-7xl mx-auto px-6 flex h-[68px] items-center justify-between">
-        {/* Brand */}
+        {/* Brand Lockup (Logo + Spaced Typography like reference site) */}
         <a
           href="#home"
-          className="font-bold text-xl tracking-tight text-white hover:text-gray-300 transition-colors"
-          style={{ fontFamily: "'Inter', sans-serif" }}
+          className="flex items-center gap-3.5 group py-1 transition-transform duration-300 hover:scale-[1.02]"
         >
-          GUNATH
+          <img
+            src={logoImg}
+            alt="Gunath Kalpitha Logo"
+            className="w-10 h-10 object-cover rounded-xl border border-white/20 shadow-md group-hover:border-amber-400 group-hover:shadow-amber-500/20 transition-all duration-300"
+          />
+          <div className="flex flex-col leading-none">
+            <span
+              className="text-[15px] font-bold tracking-[0.24em] text-white uppercase group-hover:text-amber-400 transition-colors font-display"
+            >
+              GUNATH
+            </span>
+            <span className="text-[10px] font-medium tracking-[0.34em] text-gray-400 uppercase mt-1 group-hover:text-amber-300/80 transition-colors">
+              KALPITHA
+            </span>
+          </div>
         </a>
 
-        {/* Desktop Nav */}
-        <ul className="hidden md:flex items-center gap-10">
+        {/* Desktop Nav with Animated Underline (like reference site) */}
+        <ul className="hidden md:flex items-center gap-8">
           {navLinks.map((item) => {
             const id = item.href.replace('#', '')
             const isActive = activeSection === id
@@ -61,19 +76,25 @@ function Navbar() {
               <li key={item.href}>
                 <a
                   href={item.href}
-                  className={`relative text-sm font-medium transition-colors duration-200 pb-1 ${
+                  className={`group relative text-[15px] font-medium transition-colors duration-300 py-2 ${
                     isActive ? 'text-white' : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   {item.label}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-white rounded-full" />
-                  )}
+                  {/* Underline expanding on hover and staying active */}
+                  <span
+                    className={`absolute bottom-0 left-0 h-[2px] rounded-full transition-all duration-300 ease-out ${
+                      isActive
+                        ? 'w-full bg-blue-500 shadow-sm shadow-blue-500/50'
+                        : 'w-0 group-hover:w-full bg-blue-400/80'
+                    }`}
+                  />
                 </a>
               </li>
             )
           })}
         </ul>
+        
 
         {/* CTA */}
         <div className="flex items-center gap-4">
