@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { portfolioData } from '../data/portfolioData'
+import { trackEvent } from '../analytics'
 import profileImg from '../assets/images/profile.png'
 import TechShowcase from '../components/home/TechShowcase'
 import { FaInstagram, FaFacebook, FaLinkedinIn, FaGithub, FaStar, FaMedium } from 'react-icons/fa'
@@ -625,6 +626,7 @@ function HomePage() {
                         href={blog.link}
                         target="_blank"
                         rel="noreferrer"
+                        onClick={() => trackEvent('blog_click', { event_category: 'outbound', event_label: blog.title, link_url: blog.link })}
                         className="block group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300"
                       >
                         <div className="relative h-48 overflow-hidden bg-gray-100">
@@ -751,7 +753,7 @@ function HomePage() {
                     {/* Mockup Showcase Container */}
                     <div
                       className="relative overflow-hidden rounded-2xl bg-slate-950 aspect-[16/10] mb-5 group/thumb cursor-pointer shadow-inner border border-slate-900/10"
-                      onClick={() => setLightboxProject(project)}
+                      onClick={() => { trackEvent('project_click', { event_category: 'engagement', event_label: project.title }); setLightboxProject(project) }}
                     >
                       <img
                         src={project.image}
@@ -1034,7 +1036,7 @@ function HomePage() {
             {/* Right side - Formspree form */}
             <FadeRight>
               <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-2xl shadow-blue-900/5">
-                <form action="https://formspree.io/f/mjygrrlq" method="POST" className="space-y-6">
+                <form action="https://formspree.io/f/mjygrrlq" method="POST" className="space-y-6" onSubmit={() => trackEvent('contact_form_submit', { event_category: 'engagement', event_label: 'Home Page Form' })}>
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                     <input type="text" name="name" id="name" required className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50" placeholder="Your name" />
