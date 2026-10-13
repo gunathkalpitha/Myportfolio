@@ -1,5 +1,6 @@
 import PageHero from '../components/layout/PageHero'
 import { portfolioData } from '../data/portfolioData'
+import { trackEvent } from '../analytics'
 
 function ContactPage() {
   const { contact } = portfolioData
@@ -68,6 +69,7 @@ function ContactPage() {
                     href={link.url}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={() => trackEvent('social_link_click', { event_category: 'outbound', event_label: link.label, link_url: link.url })}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-600 transition-all hover:-translate-y-0.5 shadow-sm"
                   >
                     {link.label} ↗
@@ -79,7 +81,7 @@ function ContactPage() {
             {/* Contact Form */}
             <div className="rounded-2xl border border-gray-100 bg-gray-50 p-8">
               <h3 className="font-display text-xl font-bold text-gray-900 mb-6">Send a Message</h3>
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); trackEvent('contact_form_submit', { event_category: 'engagement', event_label: 'Contact Page Form' }) }}>
                 <div>
                   <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Full Name</label>
                   <input

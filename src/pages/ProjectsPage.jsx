@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import PageHero from '../components/layout/PageHero'
 import { portfolioData } from '../data/portfolioData'
 import { Maximize2, ArrowRight, ExternalLink, X } from 'lucide-react'
+import { trackEvent } from '../analytics'
 
 function ProjectsPage() {
   const { projects } = portfolioData
@@ -77,7 +78,7 @@ function ProjectsPage() {
                 {/* Mockup Showcase Container */}
                 <div
                   className="relative overflow-hidden rounded-2xl bg-slate-950 aspect-[16/10] mb-5 group/thumb cursor-pointer shadow-inner border border-slate-900/10"
-                  onClick={() => setLightboxProject(project)}
+                  onClick={() => { trackEvent('project_click', { event_category: 'engagement', event_label: project.title }); setLightboxProject(project) }}
                 >
                   <img
                     src={project.image}
