@@ -1,26 +1,139 @@
-import { useState, useRef, useEffect } from 'react'
-import { portfolioData } from '../../data/portfolioData'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { sendChatMessage } from '../../services/geminiChat'
 import {
   Bot,
   Sparkles,
   Send,
   X,
   ArrowRight,
-  Mail,
-  Clock,
+  RotateCcw,
 } from 'lucide-react'
+
+/**
+ * Simple markdown-like renderer for chat messages.
+ * Handles **bold**, bullet lists (• or -), and links [text](url).
+ */
+function renderMarkdown(text) {
+  if (!text) return null
+
+  const lines = text.split('\n')
+  const elements = []
+  let currentList = []
+
+  const processInline = (line, lineIdx) => {
+    // Process bold and links within a line
+    const parts = []
+    // Regex: match **bold**, [text](url), or plain text
+    const regex = /(\*\*(.+?)\*\*)|(\[([^\]]+)\]\(([^)]+)\))/g
+    let lastIndex = 0
+    let match
+
+    while ((match = regex.exec(line)) !== null) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        parts.push(line.slice(lastIndex, match.index))
+      }
+
+      if (match[1]) {
+        // Bold **text**
+        parts.push(
+          <strong key={`${lineIdx}-b-${match.index}`} className="font-semibold text-white">
+            {match[2]}
+          </strong>
+        )
+      } else if (match[3]) {
+        // Link [text](url)
+        parts.push(
+          <a
+            key={`${lineIdx}-a-${match.index}`}
+            href={match[5]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors"
+          >
+            {match[4]}
+          </a>
+        )
+      }
+      lastIndex = regex.lastIndex
+    }
+
+    // Add remaining text
+    if (lastIndex < line.length) {
+      parts.push(line.slice(lastIndex))
+    }
+
+    return parts.length > 0 ? parts : [line]
+  }
+
+  const flushList = () => {
+    if (currentList.length > 0) {
+      elements.push(
+        <ul key={`list-${elements.length}`} className="space-y-1 my-1.5">
+          {currentList.map((item, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span className="text-blue-400 mt-0.5 flex-shrink-0">•</span>
+              <span>{processInline(item, `li-${i}`)}</span>
+            </li>
+          ))}
+        </ul>
+      )
+      currentList = []
+    }
+  }
+
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim()
+
+    // Bullet list items
+    if (/^[•\-\*]\s+/.test(trimmed)) {
+      currentList.push(trimmed.replace(/^[•\-\*]\s+/, ''))
+      return
+    }
+
+    // Numbered list items
+    if (/^\d+\.\s+/.test(trimmed)) {
+      currentList.push(trimmed.replace(/^\d+\.\s+/, ''))
+      return
+    }
+
+    flushList()
+
+    // Empty line
+    if (!trimmed) {
+      elements.push(<div key={`br-${idx}`} className="h-1.5" />)
+      return
+    }
+
+    // Normal paragraph
+    elements.push(
+      <p key={`p-${idx}`} className="leading-relaxed">
+        {processInline(trimmed, idx)}
+      </p>
+    )
+  })
+
+  flushList()
+
+  return <>{elements}</>
+}
 
 function ChatBotWidget() {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [error, setError] = useState(null)
   const messagesEndRef = useRef(null)
+  const inputRef = useRef(null)
+
+  // Conversation history for Gemini context (role: 'user' | 'model')
+  const conversationRef = useRef([])
 
   const [messages, setMessages] = useState([
     {
       role: 'bot',
-      text: `Hi there! 👋 I'm Gunath's AI Portfolio Assistant.`,
-      isFeatureCard: true,
+      text: `Hi there! 👋 I'm Gunath's AI Portfolio Assistant. Ask me anything about his skills, projects, experience, or how to get in touch!`,
+      isWelcome: true,
     },
   ])
 
@@ -31,51 +144,69 @@ function ChatBotWidget() {
   useEffect(() => {
     if (open) {
       scrollToBottom()
+      // Focus the input when chat opens
+      setTimeout(() => inputRef.current?.focus(), 300)
     }
   }, [messages, open, isTyping])
 
   const samplePrompts = [
-    'What are Gunath’s core skills?',
+    `What are Gunath's core skills?`,
     'Tell me about Project Sentry',
     'How can I contact Gunath?',
+    'What projects has he built?',
   ]
 
-  const handleSend = (textToSend) => {
-    const query = (textToSend || input).trim()
-    if (!query) return
+  const handleSend = useCallback(
+    async (textToSend) => {
+      const query = (textToSend || input).trim()
+      if (!query || isTyping) return
 
-    setMessages((prev) => [...prev, { role: 'user', text: query }])
-    setInput('')
-    setIsTyping(true)
+      setError(null)
+      setMessages((prev) => [...prev, { role: 'user', text: query }])
+      setInput('')
+      setIsTyping(true)
 
-    // Simulate smart AI response with coming soon notification
-    setTimeout(() => {
-      setIsTyping(false)
-      let customNote = ''
-      const lower = query.toLowerCase()
+      // Add to conversation history
+      conversationRef.current.push({ role: 'user', text: query })
 
-      if (lower.includes('sentry') || lower.includes('project') || lower.includes('nbro')) {
-        customNote =
-          'You can explore full interactive architecture breakdowns in the Projects section above!'
-      } else if (lower.includes('contact') || lower.includes('hire') || lower.includes('email')) {
-        customNote = `You can directly reach Gunath at ${portfolioData.contact.email} or on LinkedIn.`
-      } else if (lower.includes('skill')) {
-        customNote =
-          'Gunath specializes in React, Node.js, Flutter, Supabase, and IoT Embedded Systems.'
+      try {
+        const reply = await sendChatMessage(conversationRef.current)
+
+        // Add AI response to conversation history
+        conversationRef.current.push({ role: 'model', text: reply })
+
+        setMessages((prev) => [
+          ...prev,
+          { role: 'bot', text: reply },
+        ])
+      } catch (err) {
+        console.error('Chat error:', err)
+        setError(err.message || 'Something went wrong. Please try again.')
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'bot',
+            text: '⚠️ I had trouble connecting. Please try again in a moment.',
+            isError: true,
+          },
+        ])
+      } finally {
+        setIsTyping(false)
       }
+    },
+    [input, isTyping]
+  )
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'bot',
-          text: `✨ Full autonomous AI query answering is **Coming Soon**!`,
-          detail:
-            customNote ||
-            'I am currently being integrated with full Retrieval-Augmented Generation (RAG) over Gunath’s technical projects, academic research, and code repositories.',
-          showActions: true,
-        },
-      ])
-    }, 900)
+  const handleReset = () => {
+    conversationRef.current = []
+    setError(null)
+    setMessages([
+      {
+        role: 'bot',
+        text: `Hi there! 👋 I'm Gunath's AI Portfolio Assistant. Ask me anything about his skills, projects, experience, or how to get in touch!`,
+        isWelcome: true,
+      },
+    ])
   }
 
   return (
@@ -98,25 +229,36 @@ function ChatBotWidget() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold text-white tracking-wide">Gunath AI Assistant</h3>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    Coming Soon
+                  <h3 className="text-sm font-bold text-white tracking-wide">Gunath AI</h3>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    Live
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-blue-400" /> Powered by Next-Gen RAG
+                  <Sparkles className="w-3 h-3 text-blue-400" /> Powered by Gemini AI
                 </p>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
-              title="Close Assistant"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              {/* Reset conversation button */}
+              <button
+                type="button"
+                onClick={handleReset}
+                className="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+                title="Reset conversation"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+                title="Close Assistant"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Messages Feed */}
@@ -137,26 +279,21 @@ function ChatBotWidget() {
                   className={`rounded-2xl px-4 py-3 max-w-[90%] leading-relaxed ${
                     msg.role === 'user'
                       ? 'bg-blue-600 text-white shadow-md rounded-br-none'
-                      : 'bg-slate-800/90 text-slate-200 border border-slate-700/60 shadow-inner rounded-bl-none'
+                      : msg.isError
+                        ? 'bg-red-950/60 text-red-200 border border-red-800/60 shadow-inner rounded-bl-none'
+                        : 'bg-slate-800/90 text-slate-200 border border-slate-700/60 shadow-inner rounded-bl-none'
                   }`}
                 >
-                  <p>{msg.text}</p>
-                  {msg.detail && <p className="mt-2 text-slate-300 text-[11px] leading-relaxed">{msg.detail}</p>}
+                  {msg.role === 'bot' ? renderMarkdown(msg.text) : <p>{msg.text}</p>}
 
-                  {/* Coming Soon Feature Card inside greeting */}
-                  {msg.isFeatureCard && (
+                  {/* Welcome card with sample prompts */}
+                  {msg.isWelcome && (
                     <div className="mt-3 p-3 rounded-xl bg-slate-950/70 border border-slate-800 text-[11px] space-y-2">
-                      <div className="flex items-center gap-1.5 text-amber-400 font-semibold">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>Interactive AI in Active Development</span>
+                      <div className="flex items-center gap-1.5 text-blue-400 font-semibold">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Try asking me about:</span>
                       </div>
-                      <p className="text-slate-400 leading-normal">
-                        This AI chatbot is currently being connected to Gunath's real portfolio data, project documentation, and contact endpoints.
-                      </p>
-                      <div className="pt-2 border-t border-slate-800/80 flex flex-col gap-1.5">
-                        <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
-                          Preview supported topics:
-                        </span>
+                      <div className="flex flex-col gap-1.5">
                         {samplePrompts.map((prompt) => (
                           <button
                             key={prompt}
@@ -171,45 +308,52 @@ function ChatBotWidget() {
                       </div>
                     </div>
                   )}
-
-                  {/* Actions buttons on response */}
-                  {msg.showActions && (
-                    <div className="mt-3 pt-2.5 border-t border-slate-700/60 flex flex-wrap gap-2">
-                      <a
-                        href="#contact"
-                        onClick={() => setOpen(false)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600/90 hover:bg-blue-600 text-white font-semibold text-[11px] transition-colors"
-                      >
-                        <Mail className="w-3 h-3" />
-                        <span>Send Message</span>
-                      </a>
-                      <a
-                        href="#projects"
-                        onClick={() => setOpen(false)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-[11px] transition-colors"
-                      >
-                        <span>View Projects</span>
-                      </a>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
 
             {/* Typing Indicator */}
             {isTyping && (
-              <div className="flex items-center gap-2 text-slate-400 bg-slate-800/60 border border-slate-700/40 rounded-2xl px-4 py-2.5 w-24">
-                <span className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" />
-                <span
-                  className="w-2 h-2 rounded-full bg-blue-400 animate-bounce"
-                  style={{ animationDelay: '150ms' }}
-                />
-                <span
-                  className="w-2 h-2 rounded-full bg-blue-400 animate-bounce"
-                  style={{ animationDelay: '300ms' }}
-                />
+              <div className="flex items-start gap-2">
+                <div className="flex items-center gap-1.5 mt-1">
+                  <Sparkles className="w-3 h-3 text-blue-400" />
+                </div>
+                <div className="flex items-center gap-2 text-slate-400 bg-slate-800/60 border border-slate-700/40 rounded-2xl px-4 py-2.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" />
+                  <span
+                    className="w-2 h-2 rounded-full bg-blue-400 animate-bounce"
+                    style={{ animationDelay: '150ms' }}
+                  />
+                  <span
+                    className="w-2 h-2 rounded-full bg-blue-400 animate-bounce"
+                    style={{ animationDelay: '300ms' }}
+                  />
+                  <span className="text-[10px] text-slate-500 ml-1">Thinking...</span>
+                </div>
               </div>
             )}
+
+            {/* Error retry */}
+            {error && !isTyping && (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Retry the last user message
+                    const lastUserMsg = conversationRef.current[conversationRef.current.length - 1]
+                    if (lastUserMsg?.role === 'user') {
+                      conversationRef.current.pop() // Remove the failed attempt
+                      handleSend(lastUserMsg.text)
+                    }
+                  }}
+                  className="text-[10px] text-blue-400 hover:text-blue-300 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/40 hover:border-blue-500/40 transition-all"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Retry</span>
+                </button>
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
           </div>
 
@@ -224,23 +368,25 @@ function ChatBotWidget() {
             >
               <Sparkles className="w-4 h-4 text-slate-500 flex-shrink-0" />
               <input
+                ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask a question (Coming Soon preview)..."
+                placeholder="Ask about skills, projects, experience..."
                 className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none"
+                disabled={isTyping}
               />
               <button
                 type="submit"
-                disabled={!input.trim()}
+                disabled={!input.trim() || isTyping}
                 className="w-8 h-8 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:hover:bg-blue-600 text-white flex items-center justify-center transition-all flex-shrink-0"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>
             </form>
             <div className="mt-2 text-center text-[10px] text-slate-500 flex items-center justify-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              <span>Full Autonomous AI Chatbot • Coming Soon</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span>Powered by Gemini AI • Responses may not be perfect</span>
             </div>
           </div>
         </div>
@@ -266,8 +412,8 @@ function ChatBotWidget() {
 
         <div className="relative flex items-center gap-2">
           <span className="text-xs font-bold tracking-wide">AI Assistant</span>
-          <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">
-            Soon
+          <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+            Live
           </span>
         </div>
       </button>
@@ -276,4 +422,3 @@ function ChatBotWidget() {
 }
 
 export default ChatBotWidget
-
